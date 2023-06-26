@@ -41,6 +41,11 @@ val losing_moves
   -> pieces:Piece.t Position.Map.t
   -> Position.t list
 
+val evaluate
+  :  game_kind:Game_kind.t
+  -> pieces:Piece.t Position.Map.t
+  -> Evaluation.t
+
 (** The below commands provide debugging/visibility into the different
     exercises for your bot. *)
 val exercise_one : Command.t
