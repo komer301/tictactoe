@@ -84,6 +84,117 @@ let available_moves
   Set.to_list avail_pos
 ;;
 
+let starting ~(game_kind : Game_kind.t) =
+  let length = Protocol.Game_kind.board_length game_kind in
+  let rows =
+    List.init length ~f:(fun x -> { Position.row = x; column = 0 })
+  in
+  let cols =
+    List.init length ~f:(fun x -> { Position.row = 0; column = x })
+  in
+  cols, rows
+;;
+
+let rec row
+  ~(game_kind : Game_kind.t)
+  ~(pieces : Piece.t Position.Map.t)
+  ~(start : Position.t)
+  ~(length : int)
+  : int
+  =
+  if length = 0
+  then 0
+  else (
+    let value =
+      match Map.find pieces start with
+      | Some X -> 1
+      | Some O -> -1
+      | None -> 0
+    in
+    let next =
+      row
+        ~game_kind
+        ~pieces
+        ~start:(Position.right start)
+        ~length:(length - 1)
+    in
+    value + next)
+;;
+
+let rec col
+  ~(game_kind : Game_kind.t)
+  ~(pieces : Piece.t Position.Map.t)
+  ~(start : Position.t)
+  ~(length : int)
+  : int
+  =
+  if length = 0
+  then 0
+  else (
+    let value =
+      match Map.find pieces start with
+      | Some X -> 1
+      | Some O -> -1
+      | None -> 0
+    in
+    let next =
+      col ~game_kind ~pieces ~start:(Position.down start) ~length:(length - 1)
+    in
+    value + next)
+;;
+
+let rec diag_left
+  ~(game_kind : Game_kind.t)
+  ~(pieces : Piece.t Position.Map.t)
+  ~(start : Position.t)
+  ~(length : int)
+  : int
+  =
+  if length = 0
+  then 0
+  else (
+    let value =
+      match Map.find pieces start with
+      | Some X -> 1
+      | Some O -> -1
+      | None -> 0
+    in
+    let next =
+      diag_left
+        ~game_kind
+        ~pieces
+        ~start:(Position.right (Position.down start))
+        ~length:(length - 1)
+    in
+    value + next)
+;;
+
+let rec diag_right
+  ~(game_kind : Game_kind.t)
+  ~(pieces : Piece.t Position.Map.t)
+  ~(start : Position.t)
+  ~(length : int)
+  : int
+  =
+  if length = 0
+  then 0
+  else (
+    let value =
+      match Map.find pieces start with
+      | Some X -> 1
+      | Some O -> -1
+      | None -> 0
+    in
+    let next =
+      diag_right
+        ~game_kind
+        ~pieces
+        ~start:(Position.left (Position.down start))
+        ~length:(length - 1)
+    in
+    value + next)
+;;
+
 (* Exercise 2.
 
    For instructions on implemeting this refer to the README.
@@ -93,10 +204,41 @@ let available_moves
 let evaluate ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t)
   : Evaluation.t
   =
-  let 
-  ignore pieces;
-  ignore game_kind;
-  failwith "Implement me!"
+  let length = Protocol.Game_kind.board_length game_kind in
+  let find_col, find_row = starting ~game_kind:(game_kind : Game_kind.t) in
+  let row_values =
+    List.map find_row ~f:(fun x -> row ~game_kind ~pieces ~start:x ~length)
+  in
+  let col_values =
+    List.map find_col ~f:(fun y -> col ~game_kind ~pieces ~start:y ~length)
+  in
+  let diag_values_left =
+    diag_left ~game_kind ~pieces ~start:{ row = 0; column = 0 } ~length
+  in
+  let diag_values_right =
+    diag_right
+      ~game_kind
+      ~pieces
+      ~start:{ row = 0; column = length - 1 }
+      ~length
+  in
+  let checking_o =
+    List.exists row_values ~f:(Int.equal (-3))
+    || List.exists col_values ~f:(Int.equal (-3))
+    || equal diag_values_left (-3)
+    || equal diag_values_right (-3)
+  in
+  let checking_x =
+    List.exists row_values ~f:(Int.equal 3)
+    || List.exists col_values ~f:(Int.equal 3)
+    || equal diag_values_left 3
+    || equal diag_values_right 3
+  in
+  if checking_o
+  then Evaluation.Game_over { winner = Some O }
+  else if checking_x
+  then Evaluation.Game_over { winner = Some X }
+  else Evaluation.Game_continues
 ;;
 
 (* Exercise 3. *)
@@ -235,13 +377,19 @@ let%expect_test "print_non_win" =
 
 (* When you've implemented the [evaluate] function, uncomment the next two
    tests! *)
-(* let%expect_test "evalulate_win_for_x" = print_endline (evaluate
-   ~game_kind:win_for_x.game_kind ~pieces:win_for_x.pieces |>
-   Evaluation.to_string); [%expect {| (Win (X)) |}] ;;
+let%expect_test "evalulate_win_for_x" =
+  print_endline
+    (evaluate ~game_kind:win_for_x.game_kind ~pieces:win_for_x.pieces
+     |> Evaluation.to_string);
+  [%expect {| (Game_over(winner(X))) |}]
+;;
 
-   let%expect_test "evalulate_non_win" = print_endline (evaluate
-   ~game_kind:non_win.game_kind ~pieces:non_win.pieces |>
-   Evaluation.to_string); [%expect {| Game_continues |}] ;; *)
+let%expect_test "evalulate_non_win" =
+  print_endline
+    (evaluate ~game_kind:non_win.game_kind ~pieces:non_win.pieces
+     |> Evaluation.to_string);
+  [%expect {| Game_continues |}]
+;;
 
 (* When you've implemented the [winning_moves] function, uncomment this
    test! *)
