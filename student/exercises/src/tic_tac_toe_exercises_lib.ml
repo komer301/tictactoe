@@ -204,6 +204,7 @@ let rec diag_right
 let evaluate ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t)
   : Evaluation.t
   =
+  let avail = available_moves ~game_kind ~pieces in
   let length = Protocol.Game_kind.board_length game_kind in
   let find_col, find_row = starting ~game_kind:(game_kind : Game_kind.t) in
   let row_values =
@@ -240,6 +241,8 @@ let evaluate ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t)
   then Evaluation.Game_over { winner = Some O }
   else if checking_x
   then Evaluation.Game_over { winner = Some X }
+  else if List.is_empty avail
+  then Evaluation.Game_over { winner = None }
   else Evaluation.Game_continues
 ;;
 
@@ -250,7 +253,7 @@ let winning_moves
   ~(pieces : Piece.t Position.Map.t)
   : Position.t list
   =
-  print_s [%message "" (me : Piece.t)];
+  (* print_s [%message "" (me : Piece.t)]; *)
   let available_spots = available_moves ~game_kind ~pieces in
   List.filter available_spots ~f:(fun x ->
     match evaluate ~game_kind ~pieces:(Map.set pieces ~key:x ~data:me) with

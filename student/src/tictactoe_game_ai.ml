@@ -41,8 +41,8 @@ let pick_winning_move_if_possible_strategy
   else random_move_strategy ~game_kind ~pieces
 ;;
 
-(* (* disables unused warning. Feel free to delete once it's used. *) let _ =
-   pick_winning_move_if_possible_strategy *)
+(* disables unused warning. Feel free to delete once it's used. *)
+let _ = pick_winning_move_if_possible_strategy
 
 (* Exercise 4.2.
 
@@ -57,14 +57,18 @@ let pick_winning_move_or_block_if_possible_strategy
   ~(pieces : Piece.t Position.Map.t)
   : Position.t
   =
-  ignore me;
-  ignore game_kind;
-  ignore pieces;
-  failwith "Implement me!"
+  let winable =
+    Tic_tac_toe_exercises_lib.winning_moves ~me ~game_kind ~pieces
+  in
+  let loseable =
+    Tic_tac_toe_exercises_lib.losing_moves ~me ~game_kind ~pieces
+  in
+  if not (List.is_empty winable)
+  then List.random_element_exn winable
+  else if not (List.is_empty loseable)
+  then List.random_element_exn loseable
+  else random_move_strategy ~game_kind ~pieces
 ;;
-
-(* disables unused warning. Feel free to delete once it's used. *)
-let _ = pick_winning_move_or_block_if_possible_strategy
 
 let score
   ~(me : Piece.t)
@@ -72,14 +76,35 @@ let score
   ~(pieces : Piece.t Position.Map.t)
   : float
   =
-  ignore me;
-  ignore game_kind;
-  ignore pieces;
-  0.0
+  match Tic_tac_toe_exercises_lib.evaluate ~game_kind ~pieces with
+  | Tic_tac_toe_exercises_lib.Evaluation.Game_over { winner = Some winner }
+    ->
+    if Piece.equal winner me then Float.infinity else Float.neg_infinity
+  | _ -> 0.0
 ;;
 
 let _ = score
 
+let minimax ~(me: Piece.t) ~(game_kind : Game_kind.t)
+  ~(pieces : Piece.t Position.Map.t) ~(depth: int) ~(maximizing_player : bool): float =
+  (* let g_o = match Tic_tac_toe_exercises_lib.evaluate ~game_kind ~pieces with
+  | Tic_tac_toe_exercises_lib.Evaluation.Game_over {winner = Some winner} -> true
+  | _ -> false
+in
+  if depth == 0 || g_o then
+    score ~me ~game_kind ~pieces else
+  in *)
+  let avail = Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces in
+  if (List.is_empty avail) || depth == 0 then 
+    score ~me ~game_kind ~pieces else
+  if maximizing_player then
+    let value = Float.neg_infinity in
+    List.iter avail ~f:(fun x -> Float.max value (minimax ~game_kind ~pieces:(Map.set pieces ~key:x ~data:me) ~depth:depth -1 ~maximizing_player: false) 
+  else 
+    let value = Float.infinity in 
+    List.iter avail ~f:(fun)
+
+  ;;
 (* [compute_next_move] is your Game AI's function.
 
    [game_ai.exe] will connect, communicate, and play with the game server,
@@ -92,7 +117,7 @@ let _ = score
 let compute_next_move ~(me : Piece.t) ~(game_state : Game_state.t)
   : Position.t
   =
-  pick_winning_move_if_possible_strategy
+  pick_winning_move_or_block_if_possible_strategy
     ~me
     ~game_kind:game_state.game_kind
     ~pieces:game_state.pieces
