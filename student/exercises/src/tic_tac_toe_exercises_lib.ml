@@ -250,10 +250,11 @@ let winning_moves
   ~(pieces : Piece.t Position.Map.t)
   : Position.t list
   =
+  print_s [%message "" (me : Piece.t)];
   let available_spots = available_moves ~game_kind ~pieces in
   List.filter available_spots ~f:(fun x ->
     match evaluate ~game_kind ~pieces:(Map.set pieces ~key:x ~data:me) with
-    | Evaluation.Game_over { winner = Some _me } -> true
+    | Evaluation.Game_over { winner = Some winner } -> Piece.equal winner me
     | _ -> false)
 ;;
 
@@ -264,10 +265,11 @@ let losing_moves
   ~(pieces : Piece.t Position.Map.t)
   : Position.t list
   =
-  ignore me;
-  ignore game_kind;
-  ignore pieces;
-  failwith "Implement me!"
+  (* let available_spots = available_moves ~game_kind ~pieces in List.filter
+     available_spots ~f:(fun x -> match evaluate ~game_kind ~pieces:(Map.set
+     pieces ~key:x ~data:me) with | Evaluation.Game_over { winner = Some
+     winner } -> Piece.equal (Piece.flip me) winner | _ -> false) *)
+  winning_moves ~me:(Piece.flip me) ~game_kind ~pieces
 ;;
 
 let exercise_one =
@@ -371,12 +373,16 @@ let%expect_test "print_non_win" =
    available_moves ~game_kind:non_win.game_kind ~pieces:non_win.pieces |>
    List.sort ~compare:Position.compare in print_s [%sexp (moves : Position.t
    list)]; [%expect {| (((row 0) (column 1)) ((row 0) (column 2)) ((row 1)
-   (column 1)) ((row 1) (column 2)) ((row 2) (column 1))) |}] ;;
+   (column 1)) ((row 1) (column 2)) ((row 2) (column 1))) |}] ;; *)
 
-   let%expect_test "no available_moves" = let (moves : Position.t list) =
-   available_moves ~game_kind:win_for_x.game_kind ~pieces:win_for_x.pieces |>
-   List.sort ~compare:Position.compare in print_s [%sexp (moves : Position.t
-   list)]; [%expect {| () |}] ;; *)
+let%expect_test "no available_moves" =
+  let (moves : Position.t list) =
+    available_moves ~game_kind:win_for_x.game_kind ~pieces:win_for_x.pieces
+    |> List.sort ~compare:Position.compare
+  in
+  print_s [%sexp (moves : Position.t list)];
+  [%expect {| () |}]
+;;
 
 (* When you've implemented the [evaluate] function, uncomment the next two
    tests! *)
@@ -396,19 +402,46 @@ let%expect_test "evalulate_non_win" =
 
 (* When you've implemented the [winning_moves] function, uncomment this
    test! *)
-(*let%expect_test "winning_move" = let positions = winning_moves
-  ~game_kind:non_win.game_kind ~pieces:non_win.pieces ~me:Piece.X in print_s
-  [%sexp (positions : Position.t list)]; [%expect {| ((((row 1) (column 1))))
-  |}]; let positions = winning_moves ~game_kind:non_win.game_kind
-  ~pieces:non_win.pieces ~me:Piece.O in print_s [%sexp (positions :
-  Position.t list)]; [%expect {| () |}] ;;*)
+let%expect_test "winning_move" =
+  let positions =
+    winning_moves
+      ~game_kind:non_win.game_kind
+      ~pieces:non_win.pieces
+      ~me:Piece.X
+  in
+  print_s [%sexp (positions : Position.t list)];
+  [%expect {| ((((row 1) (column 1))))
+  |}];
+  let positions =
+    winning_moves
+      ~game_kind:non_win.game_kind
+      ~pieces:non_win.pieces
+      ~me:Piece.O
+  in
+  print_s [%sexp (positions : Position.t list)];
+  [%expect {| () |}]
+;;
 
 (* When you've implemented the [losing_moves] function, uncomment this
    test! *)
-(*let%expect_test "print_losing" = let positions = losing_moves
-  ~game_kind:non_win.game_kind ~pieces:non_win.pieces ~me:Piece.X in print_s
-  [%sexp (positions : Position.t list)]; [%expect {| () |}]; let positions =
-  losing_moves ~game_kind:non_win.game_kind ~pieces:non_win.pieces
-  ~me:Piece.O in print_s [%sexp (positions : Position.t list)]; [%expect {|
+let%expect_test "print_losing" =
+  let positions =
+    losing_moves
+      ~game_kind:non_win.game_kind
+      ~pieces:non_win.pieces
+      ~me:Piece.X
+  in
+  print_s [%sexp (positions : Position.t list)];
+  [%expect {| () |}];
+  let positions =
+    losing_moves
+      ~game_kind:non_win.game_kind
+      ~pieces:non_win.pieces
+      ~me:Piece.O
+  in
+  print_s [%sexp (positions : Position.t list)];
+  [%expect
+    {|
   ((((row 0) (column 1)) ((row 0) (column 2)) ((row 1) (column 2)) ((row 2)
-  (column 1)))) |}] ;;*)
+  (column 1)))) |}]
+;;
