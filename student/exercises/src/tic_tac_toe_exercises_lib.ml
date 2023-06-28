@@ -250,15 +250,11 @@ let winning_moves
   ~(pieces : Piece.t Position.Map.t)
   : Position.t list
   =
-  let avaiable_spots = available_moves ~game_kind ~pieces in
-  List.filter available_spots ~f:(**Place me on pieces then throw it into evalute, then match the evaluation to true or false based on who the winner is*)
-
-
-  (* Map.set pieces ~key:(POSITION) ~data:me *)
-  ignore me;
-  ignore game_kind;
-  ignore pieces;
-  failwith "Implement me!"
+  let available_spots = available_moves ~game_kind ~pieces in
+  List.filter available_spots ~f:(fun x ->
+    match evaluate ~game_kind ~pieces:(Map.set pieces ~key:x ~data:me) with
+    | Evaluation.Game_over { winner = Some _me } -> true
+    | _ -> false)
 ;;
 
 (* Exercise 4. *)
