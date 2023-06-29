@@ -34,6 +34,7 @@ let place_piece (game : Game_state.t) ~piece ~position : Game_state.t =
   { game with pieces }
 ;;
 
+
 let win_for_x =
   empty_game
   |> place_piece ~piece:Piece.X ~position:{ Position.row = 0; column = 0 }
@@ -268,11 +269,12 @@ let losing_moves
   ~(pieces : Piece.t Position.Map.t)
   : Position.t list
   =
-  (* let available_spots = available_moves ~game_kind ~pieces in List.filter
-     available_spots ~f:(fun x -> match evaluate ~game_kind ~pieces:(Map.set
-     pieces ~key:x ~data:me) with | Evaluation.Game_over { winner = Some
-     winner } -> Piece.equal (Piece.flip me) winner | _ -> false) *)
   winning_moves ~me:(Piece.flip me) ~game_kind ~pieces
+;;
+let place_piece_ai (game : Game_state.t) ~piece ~position : Game_state.t =
+  let pieces = Map.set game.pieces ~key:position ~data:piece in
+  let game_eval = evaluate ~game_kind:game.game_kind ~pieces:pieces in 
+  { game with pieces ; game_eval}
 ;;
 
 let exercise_one =

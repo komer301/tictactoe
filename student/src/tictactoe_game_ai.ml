@@ -87,18 +87,23 @@ let _ = score
 
 let rec minimax
   ~(me : Piece.t)
-  ~(game_kind : Game_kind.t)
+  ~(game_state : Game_state.t)
   ~(pieces : Piece.t Position.Map.t)
   ~(depth : int)
   ~(maximizing_player : bool)
   : float
   =
   let avail_spots = Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces in
-  if List.is_empty avail_spots || depth == 0 || eval then
-    score ~me ~game_kind ~pieces 
+  let check_game = match game_state.game_status with 
+  | Evaluation.Game_over -> true
+  | _ -> false in
+  if List.is_empty avail_spots || depth == 0 || check_game then
+    (* check to see if any available moves, depth has reached zero, or game is over *)
+    score ~me ~game_kind:game_state.game_kind ~pieces 
   else
     if maximizing_player then
-      (* set scores as iterate minimax on each of the available spots; returns a list of score(s) *)
+      scores = List.iter avail_spots f:(fun x -> minimax ~me ~game_state:(placed_piece_ai game_state me x) )
+      (* set scores as iterate minimax on each of the available spots, each minimax call is a new board with that posiiton taken; returns a list of score(s) *)
       (* Find the max float in the list *)
       (* Return final score *)
     else
