@@ -69,7 +69,7 @@ let pick_winning_move_or_block_if_possible_strategy
   then List.random_element_exn loseable
   else random_move_strategy ~game_kind ~pieces
 ;;
-
+let check_game 
 let score
   ~(me : Piece.t)
   ~(game_kind : Game_kind.t)
@@ -85,26 +85,69 @@ let score
 
 let _ = score
 
-let minimax ~(me: Piece.t) ~(game_kind : Game_kind.t)
-  ~(pieces : Piece.t Position.Map.t) ~(depth: int) ~(maximizing_player : bool): float =
-  (* let g_o = match Tic_tac_toe_exercises_lib.evaluate ~game_kind ~pieces with
-  | Tic_tac_toe_exercises_lib.Evaluation.Game_over {winner = Some winner} -> true
-  | _ -> false
-in
-  if depth == 0 || g_o then
-    score ~me ~game_kind ~pieces else
-  in *)
-  let avail = Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces in
-  if (List.is_empty avail) || depth == 0 then 
-    score ~me ~game_kind ~pieces else
-  if maximizing_player then
-    let value = Float.neg_infinity in
-    List.iter avail ~f:(fun x -> Float.max value (minimax ~game_kind ~pieces:(Map.set pieces ~key:x ~data:me) ~depth:depth -1 ~maximizing_player: false) 
-  else 
-    let value = Float.infinity in 
-    List.iter avail ~f:(fun)
+let rec minimax
+  ~(me : Piece.t)
+  ~(game_kind : Game_kind.t)
+  ~(pieces : Piece.t Position.Map.t)
+  ~(depth : int)
+  ~(maximizing_player : bool)
+  : float
+  =
+  let avail_spots = Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces in
+  if List.is_empty avail_spots || depth == 0 || eval then
+    score ~me ~game_kind ~pieces 
+  else
+    if maximizing_player then
+      (* set scores as iterate minimax on each of the available spots; returns a list of score(s) *)
+      (* Find the max float in the list *)
+      (* Return final score *)
+    else
+      (* set scores as iterate minimax on each of the available spots; returns a list of score(s) *)
+      (* Find the min float in the list *)
+      (* Return final score *)
+    ;;
 
-  ;;
+  (* let g_o = match Tic_tac_toe_exercises_lib.evaluate ~game_kind ~pieces
+     with | Tic_tac_toe_exercises_lib.Evaluation.Game_over {winner = Some
+     winner} -> true | _ -> false in if depth == 0 || g_o then score ~me
+     ~game_kind ~pieces else in *)
+  (* let avail = Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces in
+  if List.is_empty avail || depth == 0
+  then score ~me ~game_kind ~pieces
+  else if maximizing_player
+  then (
+    let value = Float.neg_infinity in
+    let com =
+      List.iter avail ~f:(fun x ->
+        Float.max
+          value
+          (minimax ~game_kind ~pieces:(Map.set pieces ~key:x ~data:me) ~depth
+           - 1 ~maximizing_player:false))
+    in
+    Float.max value com)
+  else (
+    let value = Float.infinity in
+    List.iter avail ~f:(fun x ->
+      Float.max
+        value
+        (minimax ~game_kind ~pieces:(Map.set pieces ~key:x ~data:me) ~depth
+         - 1 ~maximizing_player:true))) *)
+;;
+
+let top_check ~(game_kind : Game_kind.t) ~(pieces : Piece.t Position.Map.t) : Position.t =
+  let avail = Tic_tac_toe_exercises_lib.available_moves ~game_kind ~pieces in 
+  (* Check available positions of the current board; returns a list *)
+  let top_level_scores = List.iter avail f:(fun x -> minimax .... ) in
+  (* Find the scores of each of each position; returns a list *)
+  let pos_scores = List.iters2 avail top_level_scores f:(fun x y -> ) in
+  (* Itereate through the two lists and associate each score with their corresponding position
+     ; returns a list*)
+  let optimal_position = ... in
+  (* Fold through the final list, comparing the scores and choose the most optimal position *)
+  optimal_position
+;;
+  
+
 (* [compute_next_move] is your Game AI's function.
 
    [game_ai.exe] will connect, communicate, and play with the game server,
